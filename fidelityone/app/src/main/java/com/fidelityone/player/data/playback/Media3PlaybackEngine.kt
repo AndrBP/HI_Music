@@ -35,6 +35,10 @@ class Media3PlaybackEngine(private val context: Context) : AudioPlayerController
     private var pollJob: Job? = null
     private var crossfadeSec = 0f
 
+    /** Sessão de áudio do player — usada para anexar o equalizador (DynamicsProcessing). */
+    private val _audioSessionId = MutableStateFlow(0)
+    val audioSessionId: StateFlow<Int> = _audioSessionId.asStateFlow()
+
     init {
         val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
         val lf = MediaController.Builder(context, token).buildAsync()
@@ -42,6 +46,7 @@ class Media3PlaybackEngine(private val context: Context) : AudioPlayerController
             if (l.isDone && !l.isCancelled) {
                 controller = l.get().apply {
                     addListener(playerListener)
+                    _audioSessionId.value = audioSessionId
                     _state.value = _state.value.copy(
                         shuffle = shuffleModeEnabled,
                         repeatMode = mapRepeat(repeatMode)
