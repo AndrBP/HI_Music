@@ -14,17 +14,19 @@ data class FavoriteEntity(@PrimaryKey val trackId: Long)
 
 @Dao
 interface FavoritesDao {
+    // Room não converte Cursor diretamente em Flow<Set<...>> — usa List e converte no repositório.
     @Query("SELECT trackId FROM favorites")
-    fun favoriteIds(): Flow<Set<Long>>
+    fun favoriteIds(): Flow<List<Long>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE trackId = :id)")
     suspend fun isFavorite(id: Long): Boolean
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun add(id: Long)
+    suspend fun add(entity: FavoriteEntity)
 
-    @Delete
-    suspend fun remove(entity: FavoriteEntity)
+    // @Delete com parâmetro escalar exige a classe da entidade; por id usa @Query.
+    @Query("DELETE FROM favorites WHERE trackId = :id")
+    suspend fun remove(id: Long)
 }
 
 @Database(entities = [FavoriteEntity::class], version = 1, exportSchema = false)
@@ -54,7 +56,7 @@ class LibraryRepositoryImpl(private val context: Context) : LibraryRepository {
     override val tracks: Flow<List<Track>> = _tracks.asStateFlow()
 
     override val favorites: Flow<List<Track>> =
-        combine(_tracks, db.favorites().favoriteIds()) { all, ids ->
+        combine(_tracks, db.favorites().favoriteIds().map { it.toSet() }) { all, ids ->
             all.filter { ids.contains(it.id) }
         }.stateIn(coroutineScope(), SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -72,8 +74,8 @@ class LibraryRepositoryImpl(private val context: Context) : LibraryRepository {
     override fun observeScanning(): Flow<ScanProgress> = _scan.asStateFlow()
 
     override suspend fun setFavorite(trackId: Long, favorite: Boolean) {
-        if (favorite) db.favorites().add(trackId)
-        else db.favorites().remove(FavoriteEntity(trackId))
+        if (favorite) db.favorites().add(FavoriteEntity(trackId))
+        else db.favorites().remove(trackId)
     }
 
     override suspend fun isFavorite(trackId: Long): Boolean = db.favorites().isFavorite(trackId)

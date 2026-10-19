@@ -1,7 +1,8 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -23,59 +24,55 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+    // Bytecode Java/Kotlin em 17: binários funcionam quando o Gradle roda com JDK 17 ou JDK 21.
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
-    composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 }
 
 dependencies {
-    val media3 = "1.4.1"
-    val room = "2.6.1"
-    val composeBom = "2024.06.00"
-
     // Core / lifecycle
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
-    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.activity.compose)
 
     // Jetpack Compose (BOM) + Material 3
-    implementation(platform("androidx.compose:compose-bom:$composeBom"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.animation:animation")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.animation)
+    implementation(libs.navigation.compose)
 
     // Media3 / ExoPlayer — playback, gapless, decoders (FLAC/WAV/AIFF/MP3/AAC + DSD DSF/DFF→PCM)
-    implementation("androidx.media3:media3-exoplayer:$media3")
-    implementation("androidx.media3:media3-session:$media3")        // MediaSessionService
-    implementation("androidx.media3:media3-common:$media3")
-    implementation("androidx.media3:media3-datasource:$media3")
-    implementation("androidx.media3:media3-ui:$media3")             // PlayerView se necessário
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)        // MediaSessionService
+    implementation(libs.media3.common)
+    implementation(libs.media3.datasource)
+    implementation(libs.media3.ui)             // PlayerView se necessário
 
     // Room — cache da biblioteca + favoritos
-    implementation("androidx.room:room-runtime:$room")
-    implementation("androidx.room:room-ktx:$room")
-    ksp("androidx.room:room-compiler:$room")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     // DataStore — configurações (tema, layout, EQ, crossfade, replaygain, sleep timer)
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.datastore.preferences)
 
     // Coil — capas de álbum (arquivo local + content uri)
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.coil.compose)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation(libs.kotlinx.coroutines.android)
 
-    debugImplementation(platform("androidx.compose:compose-bom:$composeBom"))
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation(platform(libs.compose.bom))
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.tooling.preview)
 }
