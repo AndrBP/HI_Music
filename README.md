@@ -107,16 +107,38 @@ fidelityone/
 
 ## 3. Como rodar no Android Studio
 
-1. **Requisitos:** Android Studio Ladybug+ (Hedgehog serve), JDK 17, Android SDK 34+.
-2. Abra a pasta `fidelityone/` no Android Studio (*File → Open*). Aguarde o Gradle Sync
-   (o wrapper será sugerido; rode `gradle wrapper --gradle-version 8.7` se pedir).
-3. Em `app/build.gradle.kts`, confirme `compileSdk = 34` e `minSdk = 26`.
-4. Rode **Run ▶** num smartphone físico (recomendado, para testar áudio) ou emulador API 26+.
-5. Ao abrir, conceda a permissão **"Permitir acesso a músicas"** (READ_MEDIA_AUDIO).
-6. Vá em **Biblioteca → sincronizar** (ícone refresh): o app escaneia o MediaStore e monta a
+1. **Requisitos de toolchain:**
+   - **JDK 21 LTS (recomendado)** — Temurin 21 ou o JBR embutido do Android Studio (Meerkat+ já traz JBR 21).
+     O projeto também é **retrocompatível com JDK 17** (bytecode Java/Kotlin alvo = 17, então ambos funcionam).
+   - **Gradle 8.12 via wrapper incluído** (`./gradlew` / `gradlew.bat`) — não é necessário Gradle global.
+   - **AGP 8.9.0**, Kotlin 2.1.10 + plugin Compose Compiler oficial, KSP 2.1.10-1.0.30.
+   - Android SDK platform 34 (compileSdk 34) e build-tools compatíveis com AGP 8.9.
+   - ⚠️ **JDK 25 não é suportado** oficialmente pelo AGP/Gradle estáveis — não usar (risco de regressão alto).
+2. Abra a pasta `fidelityone/` no Android Studio (*File → Open*). O Gradle Sync usa o wrapper 8.12 automaticamente.
+   Se quiser escolher o JDK: *Settings → Build Tools → Gradle → Gradle JDK* → **jbr-21 (ou 17)**.
+3. Em `app/build.gradle.kts`, confirme `compileSdk = 34` e `minSdk = 26` (inalterados nesta atualização).
+4. Build por linha de comando (opcional):
+   ```bash
+   cd fidelityone
+   JAVA_HOME=/path/to/jdk-21 ./gradlew assembleDebug   # recomendado
+   JAVA_HOME=/path/to/jdk-17 ./gradlew assembleDebug   # retrocompatível
+   ```
+5. Rode **Run ▶** num smartphone físico (recomendado, para testar áudio) ou emulador API 26+.
+6. Ao abrir, conceda a permissão **"Permitir acesso a músicas"** (READ_MEDIA_AUDIO).
+7. Vá em **Biblioteca → sincronizar** (ícone refresh): o app escaneia o MediaStore e monta a
    biblioteca (cache Room). Formatos fora do MediaStore (ex.: DSF/DFF em algumas ROMs) podem
    aparecer apenas na aba **Pastas** — use "Reproduzir" direto do arquivo.
-7. Toque numa faixa → MiniPlayer → tela cheia. Equalizador e Temas em ☰ / Configurações.
+8. Toque numa faixa → MiniPlayer → tela cheia. Equalizador e Temas em ☰ / Configurações.
+
+### Notas da atualização de toolchain (JDK 21 LTS)
+- AGP 8.5.2 → **8.9.0**; Gradle sugerido 8.7 → **wrapper 8.12 fixo** (jar + scripts versionados).
+- Kotlin 1.9.24 → **2.1.10**; `composeOptions{kotlinCompilerExtensionVersion}` removido — agora o
+  **plugin `org.jetbrains.kotlin.plugin.compose`** gerencia o compilador Compose (obrigatório no Kotlin 2.x).
+- Compose BOM 2024.06.00 → **2024.12.01**; Media3 1.4.1 → **1.5.1**; lifecycle 2.8.4 → 2.8.7;
+  core-ktx 1.13.1 → 1.15.0; activity-compose 1.9.1 → 1.9.3; navigation 2.7.7 → 2.8.5; Coil 2.6.0 → 2.7.0;
+  coroutines 1.8.1 → 1.9.0. Room 2.6.1 e DataStore 1.1.1 permanecem (já compatíveis, sem breaking changes).
+- Versões centralizadas em `gradle/libs.versions.toml` (version catalog).
+- Nenhuma mudança em arquitetura MVVM, portas/interfaces ou lógica de reprodução de áudio.
 
 ## 4. Status do MVP (prioridades)
 
